@@ -8,8 +8,12 @@ import ma.alten.alten_backend.exceptions.TechnicalException;
 import ma.alten.alten_backend.service.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/products")
@@ -20,13 +24,12 @@ public class ProductController {
     private final ProductService productService;
 
     @Operation(summary = "Create a new product", description = "Crée un nouveau produit")
-    @PostMapping
-    public ResponseEntity<ProductDto> addProduct(@RequestBody ProductDto productDto) {
+    @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ProductDto> addProduct(@RequestPart("product") ProductDto productDto, @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
         log.info("Adding new Product: {}", productDto);
-        ProductDto createdProduct = productService.addProduct(productDto);
+        ProductDto createdProduct = productService.addProduct(productDto, imageFile);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
-
 
     @Operation(summary = "Retrieve all products", description = "Récupère la liste de tous les produits")
     @GetMapping

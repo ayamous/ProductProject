@@ -20,6 +20,7 @@ public class Product extends BaseEntity {
     private String code;
     private String name;
     private String description;
+    @Column(nullable = true, length = 64)
     private String image;
     private String category;
     private Double price;

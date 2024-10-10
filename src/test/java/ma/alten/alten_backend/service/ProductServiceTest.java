@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,12 +50,14 @@ class ProductServiceTest {
     }
 
     @Test
-    void addProduct_ShouldReturnProductDto() {
+    void addProduct_ShouldReturnProductDto() throws IOException {
+        MockMultipartFile imageFile = new MockMultipartFile("imageFile", "image.jpg", "image/jpeg", new byte[0]);
+
         when(productMapper.toProduct(productDto)).thenReturn(product);
         when(productRepository.save(product)).thenReturn(product);
         when(productMapper.toProductDto(product)).thenReturn(productDto);
 
-        ProductDto result = productService.addProduct(productDto);
+        ProductDto result = productService.addProduct(productDto, imageFile);
 
         assertEquals(productDto, result);
         verify(productRepository).save(product);

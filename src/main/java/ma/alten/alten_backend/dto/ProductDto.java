@@ -1,6 +1,7 @@
 package ma.alten.alten_backend.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 
@@ -23,5 +24,6 @@ public class ProductDto implements Serializable {
     private Long shellId;
     private String inventoryStatus;
     private Double rating;
+
 
 }

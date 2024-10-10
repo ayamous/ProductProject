@@ -12,7 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,10 +43,12 @@ class ProductControllerTest {
     }
 
     @Test
-    void addProduct_ShouldReturnCreatedProduct() {
-        when(productService.addProduct(any(ProductDto.class))).thenReturn(productDto);
+    void addProduct_ShouldReturnCreatedProduct() throws IOException {
+        MockMultipartFile imageFile = new MockMultipartFile("imageFile", "image.jpg", "image/jpeg", new byte[0]);
 
-        ResponseEntity<ProductDto> response = productController.addProduct(productDto);
+        when(productService.addProduct(any(ProductDto.class), any(MultipartFile.class))).thenReturn(productDto);
+
+        ResponseEntity<ProductDto> response = productController.addProduct(productDto, imageFile);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(productDto, response.getBody());

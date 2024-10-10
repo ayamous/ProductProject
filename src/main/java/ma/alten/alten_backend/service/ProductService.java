@@ -16,16 +16,24 @@ import ma.alten.alten_backend.exceptions.TechnicalException;
 import ma.alten.alten_backend.mapper.ProductMapper;
 import ma.alten.alten_backend.model.Product;
 import ma.alten.alten_backend.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 import static ma.alten.alten_backend.util.constants.GlobalConstants.PRODUCT_NOT_FOUND;
 
@@ -39,15 +47,42 @@ public class ProductService {
     private final EntityManager entityManager;
     private final Messages messages;
 
+    Path imageStoragePath = Paths.get("product-images");
+
+    @Autowired
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper, EntityManager entityManager, Messages messages) {
+        this.productRepository = productRepository;
+        this.productMapper = productMapper;
+        this.entityManager = entityManager;
+        this.messages = messages;
+
+        try {
+            Files.createDirectories(imageStoragePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de la création du répertoire de stockage des images", e);
+        }
+    }
+
     @Transactional
-    public ProductDto addProduct(ProductDto productDTO) {
+    public ProductDto addProduct(ProductDto productDTO, MultipartFile imageFile) throws IOException{
         log.debug("Start service add product");
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageFileName = saveImage(imageFile);
+            productDTO.setImage(imageFileName);
+        }
         String code = generateCode();
         productDTO.setCode(code);
         Product product = productMapper.toProduct(productDTO);
         Product savedProduct = productRepository.save(product);
         log.debug("End service addProduct");
         return productMapper.toProductDto(savedProduct);
+    }
+
+    private String saveImage(MultipartFile imageFile) throws IOException {
+        String imageFileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
+        Path imagePath = imageStoragePath.resolve(imageFileName);
+        Files.copy(imageFile.getInputStream(), imagePath);
+        return imageFileName;
     }
 
     private String generateCode() {
